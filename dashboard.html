@@ -4,117 +4,22 @@
   <meta charset="UTF-8" />
   <title>Dashboard Summary</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .dashboard {
-      text-align: center;
-      margin-top: 30px;
-      padding: 10px;
-    }
+  <link rel="manifest" href="manifest.json" />
 
-    .stat {
-      font-size: 1.8rem;
-      margin: 20px 0 10px;
-    }
-
-    .progress-bar {
-      height: 30px;
-      background: #e0e0e0;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 25px;
-      max-width: 90%;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: #4caf50;
-      text-align: center;
-      color: white;
-      line-height: 30px;
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-
-    .history-box {
-      max-height: 300px;
-      overflow-y: auto;
-      background: #fafafa;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 20px;
-      margin-top: 20px;
-      width: 90%;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: left;
-      font-size: 1.2rem;
-    }
-
-    .date-display {
-      font-size: 1.4rem;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .dashboard a {
-      display: inline-block;
-      margin: 10px;
-      padding: 12px 25px;
-      font-size: 1.2rem;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .dashboard a:first-of-type {
-      background-color: #28a745;
-      color: #fff;
-    }
-
-    .dashboard a:last-of-type {
-      background-color: #17a2b8;
-      color: #fff;
-    }
-
-    @media screen and (max-width: 600px) {
-      .stat {
-        font-size: 2rem;
-      }
-
-      .progress-bar {
-        height: 35px;
-      }
-
-      .progress-fill {
-        line-height: 35px;
-        font-size: 1.3rem;
-      }
-
-      .history-box {
-        font-size: 1.3rem;
-      }
-
-      .dashboard a {
-        font-size: 1.4rem;
-        padding: 14px 28px;
-      }
-    }
-  </style>
+  <script type="module" src="script.js"></script>
 </head>
 <body>
   <h1>📊 Dashboard Summary</h1>
   <p id="currentDate" class="date-display"></p>
   <div class="dashboard">
-    <div class="stat">🕌 Nimaz Done: <span id="nimazCount">0</span> / 1000</div>
-    <div class="progress-bar"><div id="nimazBar" class="progress-fill">0%</div></div>
+    <div class="stat">🕌 Nimaz Done: <span id="nimazCount">Cloud Sync Enabled</span></div>
+    <div class="progress-bar"><div id="nimazBar" class="progress-fill">Synced</div></div>
 
-    <div class="stat">📅 Days Tracked: <span id="dayCount">0</span> / 1000</div>
-    <div class="progress-bar"><div id="dayBar" class="progress-fill">0%</div></div>
+    <div class="stat">📅 Days Tracked: <span id="dayCount">Cloud Sync Enabled</span></div>
+    <div class="progress-bar"><div id="dayBar" class="progress-fill">Synced</div></div>
 
     <h2>✅ Completed History</h2>
-    <div id="historyBox" class="history-box"></div>
+    <div id="historyBox" class="history-box">Firebase cloud sync active</div>
 
     <div style="margin-top: 30px;">
       <a href="index.html">🕌 Go to Nimaz</a>
@@ -123,54 +28,8 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const today = new Date();
-      const formattedDate = today.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-      document.getElementById('currentDate').textContent = `Today: ${formattedDate}`;
-      showDashboardStats();
-    });
-
-    function showDashboardStats() {
-      let nimazCount = 0;
-      let dayCount = 0;
-      let history = [];
-
-      for (let i = 1; i <= 1000; i++) {
-        if (localStorage.getItem(`nimaz_${i}`) === 'true') {
-          nimazCount++;
-          const d = localStorage.getItem(`nimaz_${i}_date`);
-          history.push(`🕌 Nimaz ${i}: ${d}`);
-        }
-        if (localStorage.getItem(`day_${i}`) === 'true') {
-          dayCount++;
-          const d = localStorage.getItem(`day_${i}_date`);
-          history.push(`📅 Day ${i}: ${d}`);
-        }
-      }
-
-      // Set counts
-      document.getElementById('nimazCount').textContent = nimazCount;
-      document.getElementById('dayCount').textContent = dayCount;
-
-      // Fill progress bars
-      const nimazPercent = (nimazCount / 1000 * 100).toFixed(1);
-      const dayPercent = (dayCount / 1000 * 100).toFixed(1);
-      document.getElementById('nimazBar').style.width = nimazPercent + "%";
-      document.getElementById('nimazBar').textContent = nimazPercent + "%";
-      document.getElementById('dayBar').style.width = dayPercent + "%";
-      document.getElementById('dayBar').textContent = dayPercent + "%";
-
-      // Show sorted history
-      history.sort((a, b) => {
-        const dateA = a.split(": ")[1];
-        const dateB = b.split(": ")[1];
-        return new Date(dateB) - new Date(dateA);
-      });
-      document.getElementById('historyBox').innerText = history.join("\n");
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
     }
   </script>
 </body>
