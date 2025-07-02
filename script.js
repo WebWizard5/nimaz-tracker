@@ -1,6 +1,5 @@
-// script.js with Firebase login and sync
+// script.js with Firebase login, UI cleanup, and Firestore-compatible reset & jump
 
-// Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
@@ -21,11 +20,17 @@ const auth = getAuth();
 const provider = new GoogleAuthProvider();
 
 let currentUser = null;
+let checkboxData = { nimaz: {}, day: {} };
 
-function renderLoginButtons() {
+function renderLoginSection() {
   const container = document.createElement("div");
+  container.id = "authSection";
   container.style.textAlign = "center";
-  container.style.marginBottom = "20px";
+  container.style.marginBottom = "25px";
+
+  const info = document.createElement("p");
+  info.id = "welcomeText";
+  info.style.fontSize = "1.2rem";
 
   const loginBtn = document.createElement("button");
   loginBtn.textContent = "🔐 Sign in with Google";
@@ -35,20 +40,28 @@ function renderLoginButtons() {
   logoutBtn.textContent = "🚪 Sign Out";
   logoutBtn.onclick = () => signOut(auth);
 
+  container.appendChild(info);
   container.appendChild(loginBtn);
   container.appendChild(logoutBtn);
-
   document.body.insertBefore(container, document.body.firstChild);
 }
 
 onAuthStateChanged(auth, async user => {
+  const info = document.getElementById("welcomeText");
+  const loginBtn = document.querySelector("#authSection button:nth-of-type(1)");
+  const logoutBtn = document.querySelector("#authSection button:nth-of-type(2)");
+
   if (user) {
     currentUser = user;
-    loadCheckboxes("nimaz", 1000);
-    loadCheckboxes("day", 1000);
+    info.textContent = `👋 Welcome, ${user.displayName}`;
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+    await loadAllCheckboxData();
   } else {
     currentUser = null;
-    alert("Please sign in to sync your progress.");
+    info.textContent = "Please sign in to sync your progress.";
+    loginBtn.style.display = "inline-block";
+    logoutBtn.style.display = "none";
   }
 });
 
@@ -63,70 +76,86 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     dateElement.textContent = `Today: ${formattedDate}`;
   }
-
-  renderLoginButtons();
+  renderLoginSection();
 });
 
-async function loadCheckboxes(type, total) {
-  const container = document.getElementById(`${type}List`);
-  if (!container || !currentUser) return;
+async function loadAllCheckboxData() {
+  if (!currentUser) return;
 
-  const docRef = doc(db, `${type}s`, currentUser.uid);
-  const snapshot = await getDoc(docRef);
-  const data = snapshot.exists() ? snapshot.data() : {};
+  const types = ["nimaz", "day"];
+  for (const type of types) {
+    const listContainer = document.getElementById(`${type}List`);
+    if (!listContainer) continue;
 
-  for (let i = 1; i <= total; i++) {
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.id = `${type}_${i}`;
-    checkbox.checked = data[`${type}_${i}`]?.checked || false;
+    const docRef = doc(db, `${type}s`, currentUser.uid);
+    const snapshot = await getDoc(docRef);
+    checkboxData[type] = snapshot.exists() ? snapshot.data() : {};
 
-    const date = data[`${type}_${i}`]?.date || "";
+    listContainer.innerHTML = "";
 
-    const label = document.createElement("label");
-    label.htmlFor = checkbox.id;
-    label.innerText = `${type.charAt(0).toUpperCase() + type.slice(1)} ${i}`;
+    for (let i = 1; i <= 1000; i++) {
+      const boxID = `${type}_${i}`;
+      const checked = checkboxData[type][boxID]?.checked || false;
+      const date = checkboxData[type][boxID]?.date || "";
 
-    const dateSpan = document.createElement("span");
-    dateSpan.style.marginLeft = "15px";
-    dateSpan.style.fontSize = "1rem";
-    dateSpan.style.color = "#555";
-    dateSpan.textContent = date ? `✔ ${date}` : "";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = boxID;
+      checkbox.checked = checked;
 
-    checkbox.onchange = async () => {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "2-digit"
-      });
+      const label = document.createElement("label");
+      label.htmlFor = boxID;
+      label.innerText = `${type.charAt(0).toUpperCase() + type.slice(1)} ${i}`;
 
-      data[`${type}_${i}`] = checkbox.checked
-        ? { checked: true, date: dateStr }
-        : { checked: false, date: "" };
+      const dateSpan = document.createElement("span");
+      dateSpan.style.marginLeft = "15px";
+      dateSpan.style.fontSize = "1rem";
+      dateSpan.style.color = "#555";
+      dateSpan.textContent = date ? `✔ ${date}` : "";
 
-      await setDoc(docRef, data);
-      dateSpan.textContent = checkbox.checked ? `✔ ${dateStr}` : "";
-    };
+      checkbox.onchange = async () => {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "2-digit"
+        });
 
-    const div = document.createElement("div");
-    div.appendChild(checkbox);
-    div.appendChild(label);
-    div.appendChild(dateSpan);
-    container.appendChild(div);
+        checkboxData[type][boxID] = checkbox.checked
+          ? { checked: true, date: dateStr }
+          : { checked: false, date: "" };
+
+        await setDoc(doc(db, `${type}s`, currentUser.uid), checkboxData[type]);
+        dateSpan.textContent = checkbox.checked ? `✔ ${dateStr}` : "";
+      };
+
+      const div = document.createElement("div");
+      div.appendChild(checkbox);
+      div.appendChild(label);
+      div.appendChild(dateSpan);
+      listContainer.appendChild(div);
+    }
   }
 }
 
 function jumpToLast(type) {
-  // Optional for Firebase. Local fallback version can be added if needed.
+  if (!currentUser || !checkboxData[type]) return;
+  for (let i = 1000; i >= 1; i--) {
+    if (checkboxData[type][`${type}_${i}`]?.checked) {
+      const el = document.getElementById(`${type}_${i}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      break;
+    }
+  }
 }
 
 function resetAll(type) {
   if (!currentUser) return;
   if (confirm("Are you sure you want to reset all?")) {
-    const docRef = doc(db, `${type}s`, currentUser.uid);
-    setDoc(docRef, {});
-    location.reload();
+    checkboxData[type] = {};
+    setDoc(doc(db, `${type}s`, currentUser.uid), {}).then(() => location.reload());
   }
 }
 
