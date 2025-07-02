@@ -90,3 +90,39 @@ label {
     margin-bottom: 24px;
   }
 }
+
+.date-display {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+
+.date-display {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.progress-text {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #007bff;
+  margin: 10px 0 20px 0;
+}
+
+.dark-mode {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+.dark-mode button,
+.dark-mode a {
+  background-color: #333;
+  color: #fff;
+  border-color: #555;
+}

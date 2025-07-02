@@ -8,11 +8,19 @@
 <body>
   <h1>Nimaz Tracker</h1>
 
-  <!-- ✅ Add Link to Day Section -->
-  <a href="days.html">Go to Day Section</a><br><br>
+  <button onclick="showMonthlyHistory('nimaz')">📅 Show Nimaz History</button>
+<button onclick="exportData('nimaz')">📁 Export Nimaz Data</button>
 
-  <!-- ✅ Already correct -->
+  <!-- Show today's date -->
+  <p id="currentDate" class="date-display"></p>
+
+  <!-- Links and controls -->
+  <a href="days.html">Go to Day Section</a><br><br>
   <button onclick="jumpToLast('nimaz')">Jump to Last Checked</button>
+  <button onclick="resetAll('nimaz')">Reset All</button>
+  <p id="nimazProgress" class="progress-text"></p>
+
+  <!-- Nimaz checklist -->
   <div id="nimazList"></div>
 
   <script src="script.js"></script>
