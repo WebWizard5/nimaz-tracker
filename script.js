@@ -1,4 +1,4 @@
-// script.js with Firebase login, UI cleanup, and Firestore-compatible reset & jump
+// script.js with single section view for all days and nimaz
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -20,7 +20,7 @@ const auth = getAuth();
 const provider = new GoogleAuthProvider();
 
 let currentUser = null;
-let checkboxData = { nimaz: {}, day: {} };
+let checkboxData = {};
 
 function renderLoginSection() {
   const container = document.createElement("div");
@@ -56,7 +56,7 @@ onAuthStateChanged(auth, async user => {
     info.textContent = `👋 Welcome, ${user.displayName}`;
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
-    await loadAllCheckboxData();
+    await loadTrackerView();
   } else {
     currentUser = null;
     info.textContent = "Please sign in to sync your progress.";
@@ -79,126 +79,101 @@ document.addEventListener("DOMContentLoaded", () => {
   renderLoginSection();
 });
 
-async function loadAllCheckboxData() {
+async function loadTrackerView() {
   if (!currentUser) return;
+  const container = document.getElementById("nimazList");
+  if (!container) return;
 
-  const types = ["nimaz", "day"];
-  for (const type of types) {
-    const listContainer = document.getElementById(`${type}List`);
-    if (!listContainer) continue;
+  const docRef = doc(db, `tracker`, currentUser.uid);
+  const snapshot = await getDoc(docRef);
+  checkboxData = snapshot.exists() ? snapshot.data() : {};
+  container.innerHTML = "";
 
-    const docRef = doc(db, `${type}s`, currentUser.uid);
-    const snapshot = await getDoc(docRef);
-    checkboxData[type] = snapshot.exists() ? snapshot.data() : {};
+  const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
-    listContainer.innerHTML = "";
+  const today = new Date();
 
-    for (let i = 1; i <= 1000; i++) {
-      const boxID = `${type}_${i}`;
-      const checked = checkboxData[type][boxID]?.checked || false;
-      const date = checkboxData[type][boxID]?.date || "";
+  for (let i = 0; i < 1000; i++) {
+    const currentDate = new Date(today);
+    currentDate.setDate(today.getDate() + i);
+    const dateStr = currentDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    });
+    const dayName = currentDate.toLocaleDateString("en-US", { weekday: "long" });
 
+    const section = document.createElement("div");
+    section.style.marginBottom = "30px";
+
+    const dateTitle = document.createElement("h3");
+    dateTitle.textContent = `${dateStr} -- (${dayName})`;
+    section.appendChild(dateTitle);
+
+    prayers.forEach(prayer => {
+      const key = `${dateStr}_${prayer}`;
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
-      checkbox.id = boxID;
-      checkbox.checked = checked;
+      checkbox.id = key;
+      checkbox.checked = checkboxData[key]?.checked || false;
 
       const label = document.createElement("label");
-      label.htmlFor = boxID;
-      label.innerText = `${type.charAt(0).toUpperCase() + type.slice(1)} ${i}`;
-
-      const dateSpan = document.createElement("span");
-      dateSpan.style.marginLeft = "15px";
-      dateSpan.style.fontSize = "1rem";
-      dateSpan.style.color = "#555";
-      dateSpan.textContent = date ? `✔ ${date}` : "";
+      label.htmlFor = key;
+      label.innerText = prayer;
 
       checkbox.onchange = async () => {
-        const now = new Date();
-        const dateStr = now.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "2-digit"
-        });
-
-        checkboxData[type][boxID] = checkbox.checked
-          ? { checked: true, date: dateStr }
-          : { checked: false, date: "" };
-
-        await setDoc(doc(db, `${type}s`, currentUser.uid), checkboxData[type]);
-        dateSpan.textContent = checkbox.checked ? `✔ ${dateStr}` : "";
+        checkboxData[key] = { checked: checkbox.checked };
+        await setDoc(docRef, checkboxData);
       };
 
       const div = document.createElement("div");
       div.appendChild(checkbox);
       div.appendChild(label);
-      div.appendChild(dateSpan);
-      listContainer.appendChild(div);
+      section.appendChild(div);
+    });
+
+    if (dayName === "Friday") {
+      const key = `${dateStr}_Jumma`;
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = key;
+      checkbox.checked = checkboxData[key]?.checked || false;
+
+      const label = document.createElement("label");
+      label.htmlFor = key;
+      label.innerText = "Jumma";
+
+      checkbox.onchange = async () => {
+        checkboxData[key] = { checked: checkbox.checked };
+        await setDoc(docRef, checkboxData);
+      };
+
+      const div = document.createElement("div");
+      div.appendChild(checkbox);
+      div.appendChild(label);
+      section.appendChild(div);
     }
+
+    container.appendChild(section);
   }
 }
 
-function jumpToLast(type) {
-  if (!currentUser || !checkboxData[type]) return;
-  for (let i = 1000; i >= 1; i--) {
-    if (checkboxData[type][`${type}_${i}`]?.checked) {
-      const el = document.getElementById(`${type}_${i}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      break;
-    }
-  }
-}
-
-function resetAll(type) {
+function resetAll() {
   if (!currentUser) return;
-  if (confirm("Are you sure you want to reset all?")) {
-    checkboxData[type] = {};
-    setDoc(doc(db, `${type}s`, currentUser.uid), {}).then(() => location.reload());
+  if (confirm("Are you sure you want to reset all your Nimaz records?")) {
+    checkboxData = {};
+    setDoc(doc(db, `tracker`, currentUser.uid), {}).then(() => location.reload());
   }
 }
 
-function showMonthlyHistory(type) {
+function showMonthlyHistory() {
   alert("(Cloud sync active) Monthly history coming soon.");
 }
 
-function exportData(type) {
+function exportData() {
   alert("(Cloud sync active) Export coming soon.");
 }
 
-function setupDarkMode() {
-  const isDark = localStorage.getItem("darkmode") === "true";
-  document.body.classList.toggle("dark-mode", isDark);
-
-  const button = document.createElement("button");
-  button.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
-  button.onclick = () => {
-    const dark = document.body.classList.toggle("dark-mode");
-    localStorage.setItem("darkmode", dark);
-    button.textContent = dark ? "☀️ Light Mode" : "🌙 Dark Mode";
-  };
-  document.body.insertBefore(button, document.body.firstChild);
-}
-
-function addDashboardLink() {
-  const nav = document.createElement("div");
-  nav.innerHTML = '<a href="dashboard.html" style="position:fixed; top:10px; right:10px; background:#007bff; color:#fff; padding:10px 15px; border-radius:8px; text-decoration:none; font-weight:bold; z-index:1000;">🏠 Dashboard</a>';
-  document.body.appendChild(nav);
-}
-
-function setupNotifications() {
-  if ("Notification" in window && Notification.permission !== "denied") {
-    Notification.requestPermission().then(permission => {
-      if (permission === "granted") {
-        setTimeout(() => {
-          new Notification("🕌 Did you complete your Nimaz today?");
-        }, 2000);
-      }
-    });
-  }
-}
-
-function showMotivationalSuggestion() {
-  // Firebase version coming soon
-}
+window.resetAll = resetAll;
+window.showMonthlyHistory = showMonthlyHistory;
+window.exportData = exportData;

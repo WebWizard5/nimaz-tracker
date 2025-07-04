@@ -5,25 +5,27 @@
   <title>Nimaz Tracker</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json" />
-
-  <!-- Firebase SDKs for App, Auth, Firestore -->
   <script type="module" src="script.js"></script>
 </head>
 <body>
   <h1>Nimaz Tracker</h1>
 
-  <button onclick="showMonthlyHistory('nimaz')">📅 Show Nimaz History</button>
-  <button onclick="exportData('nimaz')">📁 Export Nimaz Data</button>
+  <button onclick="showMonthlyHistory()">📅 Show History</button>
+  <button onclick="exportData()">📁 Export Data</button>
 
+  <!-- Show today's date -->
   <p id="currentDate" class="date-display"></p>
 
-  <a href="days.html">Go to Day Section</a><br><br>
-  <button onclick="jumpToLast('nimaz')">Jump to Last Checked</button>
-  <button onclick="resetAll('nimaz')">Reset All</button>
-  <p id="nimazProgress" class="progress-text"></p>
+  <!-- Removed day section link -->
+  <!-- <a href="days.html">Go to Day Section</a> -->
 
+  <!-- Only one Reset button -->
+  <button onclick="resetAll()">Reset All</button>
+
+  <!-- Combined prayer tracker section -->
   <div id="nimazList"></div>
 
+  <!-- PWA support -->
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("service-worker.js");
