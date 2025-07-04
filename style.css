@@ -1,64 +1,103 @@
-/* Base Styles */
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  padding: 30px;
-  background-color: #f5f5f5;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to bottom right, #e6f0ff, #f7faff);
   color: #333;
+  padding: 30px;
   max-width: 900px;
   margin: auto;
 }
 
 h1 {
-  font-size: 2.5rem;
-  margin-bottom: 30px;
+  font-size: 2.8rem;
   text-align: center;
-}
-
-a {
-  font-size: 1.4rem;
-  color: #007bff;
-  text-decoration: none;
-  display: inline-block;
-  margin-bottom: 20px;
-}
-
-a:hover {
-  text-decoration: underline;
+  margin-bottom: 35px;
+  color: #2a4d69;
 }
 
 button {
-  padding: 15px 25px;
-  font-size: 1.4rem;
-  margin-bottom: 30px;
+  padding: 14px 22px;
+  font-size: 1.3rem;
+  margin: 15px 10px;
   cursor: pointer;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #ffffff;
-  transition: background 0.3s;
+  border-radius: 10px;
+  border: none;
+  background: #4a90e2;
+  color: white;
+  transition: 0.3s;
 }
 
 button:hover {
-  background-color: #e0e0e0;
+  background: #357ab8;
 }
 
-div {
-  margin-bottom: 18px;
-}
-
-/* Checkbox & label styling */
-input[type="checkbox"] {
-  width: 28px;
-  height: 28px;
-  margin-right: 15px;
-  cursor: pointer;
+a {
+  color: #2a4d69;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-decoration: none;
 }
 
 label {
-  font-size: 1.6rem;
+  font-size: 1.2rem;
+  margin-left: 10px;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
   cursor: pointer;
 }
 
-/* Mobile View */
+#nimazList > div {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+#nimazList h3, .date-display {
+  color: #2a4d69;
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+
+.day-summary {
+  font-size: 1rem;
+  color: #444;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.date-display {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.dark-mode {
+  background: #121212;
+  color: #eee;
+}
+
+.dark-mode button {
+  background: #333;
+  color: white;
+}
+
+.dark-mode #nimazList > div {
+  background: rgba(33, 33, 33, 0.95);
+  border: 1px solid #555;
+}
+
 @media screen and (max-width: 600px) {
   body {
     padding: 20px;
@@ -68,61 +107,18 @@ label {
     font-size: 2rem;
   }
 
-  a {
-    font-size: 1.5rem;
-  }
-
   button {
     width: 100%;
-    font-size: 1.6rem;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
   }
 
   label {
-    font-size: 1.8rem;
+    font-size: 1.3rem;
   }
 
   input[type="checkbox"] {
-    width: 34px;
-    height: 34px;
+    width: 28px;
+    height: 28px;
   }
-
-  div {
-    margin-bottom: 24px;
-  }
-}
-
-.date-display {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #444;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-
-.date-display {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #444;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.progress-text {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #007bff;
-  margin: 10px 0 20px 0;
-}
-
-.dark-mode {
-  background-color: #121212;
-  color: #f0f0f0;
-}
-
-.dark-mode button,
-.dark-mode a {
-  background-color: #333;
-  color: #fff;
-  border-color: #555;
 }
