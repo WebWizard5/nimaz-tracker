@@ -1,4 +1,4 @@
-// script.js with 3-year daily namaz tracker view, dark mode, calendar jump, and logout fix
+// script.js with 3-year tracker + prayer summary per day + logout/reset fixes
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -40,6 +40,7 @@ function renderLoginSection() {
   logoutBtn.textContent = "🚪 Sign Out";
   logoutBtn.onclick = () => {
     signOut(auth).then(() => {
+      localStorage.removeItem("dark");
       location.reload();
     }).catch((error) => {
       alert("Logout failed: " + error.message);
@@ -67,7 +68,6 @@ function renderDarkModeToggle() {
   };
 
   document.body.appendChild(toggle);
-
   if (localStorage.getItem("dark") === "true") {
     document.body.classList.add("dark-mode");
   }
@@ -105,42 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   renderLoginSection();
   renderDarkModeToggle();
-  renderCalendarJump();
-  if (auth.currentUser) {
-    currentUser = auth.currentUser;
-    await loadTrackerView();
-  }
 });
-
-function renderCalendarJump() {
-  const jumpSection = document.createElement("div");
-  jumpSection.style.textAlign = "center";
-  jumpSection.style.margin = "20px auto";
-
-  const input = document.createElement("input");
-  input.type = "date";
-  input.style.padding = "10px";
-  input.style.fontSize = "1rem";
-
-  const button = document.createElement("button");
-  button.textContent = "📅 Go to Date";
-  button.style.marginLeft = "10px";
-  button.onclick = () => {
-    const date = new Date(input.value);
-    if (!isNaN(date)) {
-      const label = date.toLocaleDateString("en-US", {
-        year: "numeric", month: "short", day: "numeric"
-      });
-      const header = Array.from(document.querySelectorAll("h3"))
-        .find(h => h.textContent.startsWith(label));
-      if (header) header.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
-
-  jumpSection.appendChild(input);
-  jumpSection.appendChild(button);
-  document.body.insertBefore(jumpSection, document.getElementById("nimazList"));
-}
 
 async function loadTrackerView() {
   if (!currentUser) return;
@@ -164,70 +129,72 @@ async function loadTrackerView() {
     const dayName = currentDate.toLocaleDateString("en-US", { weekday: "long" });
 
     const section = document.createElement("div");
-    section.style.marginBottom = "30px";
+    section.style.marginBottom = "25px";
+    section.style.padding = "12px 18px";
     section.style.border = "1px solid #ccc";
-    section.style.borderRadius = "8px";
-    section.style.padding = "15px";
-    section.style.background = "#fafafa";
+    section.style.borderRadius = "10px";
+    section.style.background = "#fdfdfd";
 
-    const dateTitle = document.createElement("h3");
-    dateTitle.textContent = `${dateStr} — (${dayName})`;
-    section.appendChild(dateTitle);
+    const title = document.createElement("div");
+    title.style.fontWeight = "bold";
+    title.style.marginBottom = "10px";
+    title.style.fontSize = "1.1rem";
+    title.textContent = `${dateStr} — (${dayName})`;
+    section.appendChild(title);
 
-    prayers.forEach(prayer => {
+    const allPrayers = [...prayers];
+    if (dayName === "Friday") allPrayers.push("Jumma");
+
+    let dayCompleted = 0;
+    allPrayers.forEach(prayer => {
       const key = `${dateStr}_${prayer}`;
+      const div = document.createElement("div");
+
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.id = key;
       checkbox.checked = checkboxData[key]?.checked || false;
+      if (checkbox.checked) dayCompleted++;
 
       const label = document.createElement("label");
       label.htmlFor = key;
       label.innerText = prayer;
+      label.style.marginLeft = "10px";
+      label.style.fontSize = "1.05rem";
 
       checkbox.onchange = async () => {
         checkboxData[key] = { checked: checkbox.checked };
         await setDoc(docRef, checkboxData);
+        updateDaySummary(section, allPrayers, dateStr);
       };
 
-      const div = document.createElement("div");
-      div.style.display = "flex";
-      div.style.alignItems = "center";
-      div.style.gap = "10px";
-      div.style.margin = "5px 0";
       div.appendChild(checkbox);
       div.appendChild(label);
+      div.style.marginBottom = "6px";
+
       section.appendChild(div);
     });
 
-    if (dayName === "Friday") {
-      const key = `${dateStr}_Jumma`;
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.id = key;
-      checkbox.checked = checkboxData[key]?.checked || false;
-
-      const label = document.createElement("label");
-      label.htmlFor = key;
-      label.innerText = "Jumma";
-
-      checkbox.onchange = async () => {
-        checkboxData[key] = { checked: checkbox.checked };
-        await setDoc(docRef, checkboxData);
-      };
-
-      const div = document.createElement("div");
-      div.style.display = "flex";
-      div.style.alignItems = "center";
-      div.style.gap = "10px";
-      div.style.margin = "5px 0";
-      div.appendChild(checkbox);
-      div.appendChild(label);
-      section.appendChild(div);
-    }
+    const summary = document.createElement("div");
+    summary.className = "day-summary";
+    summary.style.fontSize = "0.95rem";
+    summary.style.fontStyle = "italic";
+    summary.style.marginTop = "6px";
+    summary.textContent = `✅ ${dayCompleted} / ${allPrayers.length} prayers completed`;
+    section.appendChild(summary);
 
     container.appendChild(section);
   }
+}
+
+function updateDaySummary(section, prayers, dateStr) {
+  let count = 0;
+  prayers.forEach(prayer => {
+    const key = `${dateStr}_${prayer}`;
+    if (checkboxData[key]?.checked) count++;
+  });
+  const summary = section.querySelector(".day-summary");
+  if (summary) summary.textContent = `✅ ${count} / ${prayers.length} prayers completed`;
 }
 
 function resetAll() {
