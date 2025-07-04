@@ -40,29 +40,40 @@
   <div id="nimazList"></div>
 
   <!-- PWA Support -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+
+  window.scrollToDate = function (value) {
+    if (!value) {
+      alert("Please select a valid date.");
+      return;
     }
 
-    window.scrollToDate = function (value) {
-      const date = new Date(value);
-      if (!isNaN(date)) {
-        const label = date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric"
-        });
-        const header = Array.from(document.querySelectorAll("div h3"))
-  .find(h => h.textContent.includes(label));
+    const selectedDate = new Date(value);
+    if (isNaN(selectedDate)) {
+      alert("Invalid date.");
+      return;
+    }
 
-        if (header) {
-          header.scrollIntoView({ behavior: "smooth", block: "center" });
-        } else {
-          alert("That date is outside the tracked 3-year range.");
-        }
+    const label = selectedDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    });
+
+    const headers = document.querySelectorAll("#nimazList h3, #nimazList div div:first-child");
+    for (let h of headers) {
+      if (h.textContent && h.textContent.includes(label)) {
+        h.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
       }
-    };
-  </script>
+    }
+
+    alert("That date is outside the tracked 3-year range.");
+  };
+</script>
+
 </body>
 </html>
