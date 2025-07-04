@@ -54,7 +54,8 @@
           day: "numeric"
         });
         const header = Array.from(document.querySelectorAll("div h3"))
-          .find(h => h.textContent.startsWith(label));
+  .find(h => h.textContent.includes(label));
+
         if (header) {
           header.scrollIntoView({ behavior: "smooth", block: "center" });
         } else {
