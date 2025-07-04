@@ -2,34 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Nimaz Tracker</title>
+  <title>Namaz Tracker</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json" />
   <script type="module" src="script.js"></script>
 </head>
 <body>
-  <h1>Nimaz Tracker</h1>
+  <h1>Namaz Tracker</h1>
 
-  <button onclick="showMonthlyHistory()">📅 Show History</button>
-  <button onclick="exportData()">📁 Export Data</button>
+  <!-- 📅 Date Picker to Jump to Any Day -->
+  <div style="text-align: center; margin-bottom: 20px;">
+    <input 
+      type="date" 
+      style="padding: 10px; font-size: 1rem;" 
+      onchange="scrollToDate(this.value)" 
+      placeholder="Jump to date"
+    >
+    <button style="padding: 10px 15px; margin-left: 10px;" onclick="scrollToDate(document.querySelector('input[type=date]').value)">
+      📅 Go to Date
+    </button>
+  </div>
 
-  <!-- Show today's date -->
+  <!-- Action Buttons -->
+  <div style="text-align: center; margin-bottom: 20px;">
+    <button onclick="showMonthlyHistory()">📅 Show History</button>
+    <button onclick="exportData()">📁 Export Data</button>
+    <button onclick="resetAll()">🗑 Reset All</button>
+  </div>
+
+  <!-- Today's Date -->
   <p id="currentDate" class="date-display"></p>
 
-  <!-- Removed day section link -->
-  <!-- <a href="days.html">Go to Day Section</a> -->
-
-  <!-- Only one Reset button -->
-  <button onclick="resetAll()">Reset All</button>
-
-  <!-- Combined prayer tracker section -->
+  <!-- Namaz Tracker -->
   <div id="nimazList"></div>
 
-  <!-- PWA support -->
+  <!-- PWA Support -->
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("service-worker.js");
     }
+
+    // Helper function for calendar jump (required in global scope)
+    window.scrollToDate = function (value) {
+      const date = new Date(value);
+      if (!isNaN(date)) {
+        const label = date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric"
+        });
+        const header = Array.from(document.querySelectorAll("h3"))
+          .find(h => h.textContent.startsWith(label));
+        if (header) {
+          header.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          alert("That date is outside the tracked 3-year range.");
+        }
+      }
+    };
   </script>
 </body>
 </html>

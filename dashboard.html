@@ -1,36 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Dashboard Summary</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
+// Upgraded Dashboard script for Namaz Tracker
 
-  <script type="module" src="script.js"></script>
-</head>
-<body>
-  <h1>📊 Dashboard Summary</h1>
-  <p id="currentDate" class="date-display"></p>
-  <div class="dashboard">
-    <div class="stat">🕌 Nimaz Done: <span id="nimazCount">Cloud Sync Enabled</span></div>
-    <div class="progress-bar"><div id="nimazBar" class="progress-fill">Synced</div></div>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-    <div class="stat">📅 Days Tracked: <span id="dayCount">Cloud Sync Enabled</span></div>
-    <div class="progress-bar"><div id="dayBar" class="progress-fill">Synced</div></div>
+const firebaseConfig = {
+  apiKey: "AIzaSyCsU16hWWOzdoWDrTnKP1p_dZVO51-7vRw",
+  authDomain: "nimaz-tracker-b8516.firebaseapp.com",
+  projectId: "nimaz-tracker-b8516",
+  storageBucket: "nimaz-tracker-b8516.firebasestorage.app",
+  messagingSenderId: "487763725503",
+  appId: "1:487763725503:web:cae0512b7a58997de68a0a",
+  measurementId: "G-FV3VFTXK5R"
+};
 
-    <h2>✅ Completed History</h2>
-    <div id="historyBox" class="history-box">Firebase cloud sync active</div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore();
+const auth = getAuth();
 
-    <div style="margin-top: 30px;">
-      <a href="index.html">🕌 Go to Nimaz</a>
-      <a href="days.html">📅 Go to Days</a>
-    </div>
-  </div>
+let currentUser = null;
 
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById("welcomeText").textContent = `👋 Welcome, ${user.displayName}`;
+    loadDashboard();
+  } else {
+    document.getElementById("welcomeText").textContent = "Please sign in to view your dashboard.";
+  }
+});
+
+async function loadDashboard() {
+  const docRef = doc(db, "tracker", currentUser.uid);
+  const snapshot = await getDoc(docRef);
+  const data = snapshot.exists() ? snapshot.data() : {};
+
+  let total = 0;
+  let prayerStats = {
+    Fajr: 0, Dhuhr: 0, Asr: 0, Maghrib: 0, Isha: 0, Jumma: 0
+  };
+  const log = [];
+
+  for (const key in data) {
+    const parts = key.split("_");
+    const prayer = parts[1];
+    if (data[key].checked && prayerStats[prayer] !== undefined) {
+      prayerStats[prayer]++;
+      total++;
+      log.push(`${key.replace("_", " → ")}`);
     }
-  </script>
-</body>
-</html>
+  }
+
+  const totalExpected = 1095 * 5 + Math.floor(1095 / 7); // 5 prayers per day + some Fridays
+  const percent = ((total / totalExpected) * 100).toFixed(1);
+
+  document.getElementById("totalCount").textContent = `${total} / ${totalExpected} completed`;
+  document.getElementById("progressBar").style.width = percent + "%";
+  document.getElementById("progressBar").textContent = percent + "%";
+
+  let breakdownHTML = "";
+  for (const [prayer, count] of Object.entries(prayerStats)) {
+    breakdownHTML += `<li><strong>${prayer}</strong>: ${count}</li>`;
+  }
+  document.getElementById("breakdown").innerHTML = breakdownHTML;
+
+  document.getElementById("history").textContent = log.slice(-20).reverse().join("\n");
+}
+
+// Basic style toggle
+if (localStorage.getItem("dark") === "true") {
+  document.body.classList.add("dark-mode");
+}
