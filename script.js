@@ -65,7 +65,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const dateElement = document.getElementById("currentDate");
   if (dateElement) {
     const today = new Date();
@@ -76,7 +76,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     dateElement.textContent = `Today: ${formattedDate}`;
   }
+
   renderLoginSection();
+
+  // ✅ Load tracker immediately (if already signed in)
+  if (auth.currentUser) {
+    currentUser = auth.currentUser;
+    await loadTrackerView();
+  }
 });
 
 async function loadTrackerView() {
