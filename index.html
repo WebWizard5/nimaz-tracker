@@ -42,7 +42,6 @@
       navigator.serviceWorker.register("service-worker.js");
     }
 
-    // Helper function for calendar jump (required in global scope)
     window.scrollToDate = function (value) {
       const date = new Date(value);
       if (!isNaN(date)) {
@@ -51,7 +50,7 @@
           month: "short",
           day: "numeric"
         });
-        const header = Array.from(document.querySelectorAll("h3"))
+        const header = Array.from(document.querySelectorAll("div h3"))
           .find(h => h.textContent.startsWith(label));
         if (header) {
           header.scrollIntoView({ behavior: "smooth", block: "center" });
