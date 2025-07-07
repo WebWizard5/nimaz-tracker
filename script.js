@@ -118,7 +118,7 @@ async function loadTrackerView() {
   container.innerHTML = "";
 
   const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
-  const startDate = new Date("2024-07-01");
+ const startDate = new Date("2025-07-06");
   const totalDays = 1095;
 
   for (let i = 0; i < totalDays; i++) {
