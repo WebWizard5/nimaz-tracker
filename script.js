@@ -1,4 +1,4 @@
-// script.js with 3-year tracker + prayer summary per day + logout/reset fixes
+// script.js with 3-year tracker + prayer summary per day + logout/reset fixes and fixed start date
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -118,11 +118,12 @@ async function loadTrackerView() {
   container.innerHTML = "";
 
   const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
-  const today = new Date();
+  const startDate = new Date("2024-07-01");
+  const totalDays = 1095;
 
-  for (let i = 0; i < 1095; i++) {
-    const currentDate = new Date(today);
-    currentDate.setDate(today.getDate() + i);
+  for (let i = 0; i < totalDays; i++) {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + i);
     const dateStr = currentDate.toLocaleDateString("en-US", {
       year: "numeric", month: "short", day: "numeric"
     });
